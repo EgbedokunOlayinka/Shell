@@ -34,7 +34,24 @@ func main() {
 			executeTypeCommand(arg)
 			continue
 		}
-		fmt.Println(command + ": command not found")
+
+		fields := strings.Fields(command)
+		executeCommand(fields[0], fields[1:]...)
+	}
+}
+
+func executeCommand(name string, args ...string) {
+	_, err := exec.LookPath(name)
+	if err != nil {
+		fmt.Println(name + ": command not found")
+		return
+	}
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println("error:", err)
+		return;
 	}
 }
 
