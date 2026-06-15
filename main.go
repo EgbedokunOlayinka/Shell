@@ -9,38 +9,58 @@ import (
 	"strings"
 )
 
+var builtins = map[string]bool{
+	"echo": true,
+	"exit": true,
+	"type": true,
+}
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		fmt.Print("$ ")
-		command, err := reader.ReadString('\n')
+		input, err := reader.ReadString('\n')
 
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
 
-		command = strings.TrimSpace(command)
-		if command == "exit" {
-			break
-		}
-		if strings.HasPrefix(command, "echo ") {
-			fmt.Println(command[5:])
-			continue
-		}
-		if strings.HasPrefix(command, "type ") {
-			arg := command[5:]
-			executeTypeCommand(arg)
+		input = strings.TrimSpace(input)
+		fields := strings.Fields(input)
+
+		if len(fields) == 0 {
+			fmt.Println("Please enter your command")
 			continue
 		}
 
-		fields := strings.Fields(command)
-		executeCommand(fields[0], fields[1:]...)
+		command := fields[0]
+		args := fields[1:]
+		isBuiltIn := builtins[command]
+		
+		if isBuiltIn {
+			executeBuiltInCommand(command, args...)
+		} else {
+			executeExternalCommand(command, args...)
+		}
 	}
 }
 
-func executeCommand(name string, args ...string) {
+func executeBuiltInCommand(name string, args ...string) {
+	switch name {
+		case "exit":
+			os.Exit(0)
+		case "echo":
+			fmt.Println(strings.Join(args, " "))
+		case "type":
+			executeTypeCommand(strings.Join(args, " "))
+		default:
+			fmt.Println(name + ": command not found")
+	}
+}
+
+func executeExternalCommand(name string, args ...string) {
 	_, err := exec.LookPath(name)
 	if err != nil {
 		fmt.Println(name + ": command not found")
@@ -56,11 +76,6 @@ func executeCommand(name string, args ...string) {
 }
 
 func executeTypeCommand(arg string) {
-	builtins := map[string]bool{
-		"echo": true,
-		"exit": true,
-		"type": true,
-	}
 	if builtins[arg] {
 		fmt.Println(arg + " is a shell builtin")
 		return
