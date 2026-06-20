@@ -39,7 +39,6 @@ func handleType(arg string) {
 		fmt.Println(arg + " is a shell builtin")
 		return
 	} 
-
 	path, err := exec.LookPath(arg)
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
@@ -67,6 +66,10 @@ func handlePwd(args ...string) {
 
 func handleCd(args ...string) {
 	if len(args) == 0 {
+		return
+	} 
+	path := args[0]
+	if(path == "~") {
 		home := os.Getenv("HOME")
 		if home == "" {
 			fmt.Println("cd: HOME not set")
@@ -74,8 +77,7 @@ func handleCd(args ...string) {
 		}
 		os.Chdir(home)
 		return
-	} 
-	path := args[0]
+	}
 	if err := os.Chdir(path); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			fmt.Println("cd: " + path + ": No such file or directory")
