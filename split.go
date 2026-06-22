@@ -15,12 +15,38 @@ func handleSplit(input string) []string {
 	word := ""
 	quotedWord := ""
 	activeQuote := ""
+	backSlashActive := false
 
 	for _, runeValue := range input {
 		currentChar := fmt.Sprintf("%c", runeValue)
+		charIsQuote := currentChar == "'" || currentChar == `"`
+		quoteIsOpen := activeQuote != ""
+		charIsBackSlash := currentChar == `\`
+		charIsWhiteSpace := unicode.IsSpace(runeValue)
+
+		// the next character after a backslash
+		if backSlashActive {
+			backSlashActive = false
+			if !quoteIsOpen {
+				word += currentChar
+				continue
+			}
+			isDoubleQuote := activeQuote == `"`
+			charIsEscapable := currentChar == `"` || currentChar == `\`
+			if !isDoubleQuote || !charIsEscapable {
+				quotedWord += currentChar
+				continue
+			}
+			lastQuotedRune, size := utf8.DecodeLastRuneInString(quotedWord)
+			if lastQuotedRune == utf8.RuneError && size == 0 { // quotedWord is empty
+				quotedWord += currentChar
+				continue
+			}
+			quotedWord = quotedWord[:len(quotedWord)-size] + string(runeValue)  //replace the last character("\") with the escaped new character(.e.g. "\" or `"`)
+			continue
+		}
 
 		// handle quote
-		charIsQuote := currentChar == "'" || currentChar == `"`
 		if charIsQuote {
 			if activeQuote == "" {
 				quotedWord = ""
@@ -40,14 +66,24 @@ func handleSplit(input string) []string {
 			continue
 		}
 
-		if activeQuote != "" {
+		// we are inside an open quote here (.e.g. "example)
+		if quoteIsOpen {
+			isDoubleQuote := activeQuote == `"`
+			if charIsBackSlash && isDoubleQuote {
+				backSlashActive = true
+			}
 			quotedWord += currentChar
+			continue
+		}
+
+		// handle backslash
+		if charIsBackSlash {
+			backSlashActive = true
 			continue
 		}
 		
 		// handle whitespace
-		isCurrentCharWhiteSpace := unicode.IsSpace(runeValue)
-		if isCurrentCharWhiteSpace {
+		if charIsWhiteSpace {
 			wordCount := utf8.RuneCountInString(word)
 			if wordCount == 0 {
 				continue
