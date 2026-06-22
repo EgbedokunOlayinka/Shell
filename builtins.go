@@ -14,9 +14,9 @@ func handleBuiltInCommand(name string, args ...string) {
 		case "exit":
 			handleExit()
 		case "echo":
-			handleEcho(strings.Join(args, " "))
+			handleEcho(args...)
 		case "type":
-			handleType(strings.Join(args, " "))
+			handleType(args...)
 		case "pwd":
 			handlePwd(args...)
 		case "cd":
@@ -30,11 +30,16 @@ func handleExit() {
 	os.Exit(0)
 }
 
-func handleEcho(arg string) {
+func handleEcho(args ...string) {
+	arg := strings.Join(args, " ")
 	fmt.Println(arg)
 }
 
-func handleType(arg string) {
+func handleType(args ...string) {
+	if len(args) == 0 {
+		return
+	}
+	arg := strings.Join(args, " ")
 	if builtins[arg] {
 		fmt.Println(arg + " is a shell builtin")
 		return

@@ -28,7 +28,7 @@ func main() {
 		}
 
 		input = strings.TrimSpace(input)
-		fields := strings.Fields(input)
+		fields := handleSplit(input)
 
 		if len(fields) == 0 {
 			fmt.Println("Please enter your command")
@@ -36,7 +36,12 @@ func main() {
 		}
 
 		command := fields[0]
-		args := fields[1:]
+		var args []string
+		if len(fields) >= 2 {
+			args = fields[1:]
+		} else {
+			args = []string{}
+		}
 		isBuiltIn := builtins[command]
 		
 		if isBuiltIn {
@@ -46,5 +51,4 @@ func main() {
 		}
 	}
 }
-
 
