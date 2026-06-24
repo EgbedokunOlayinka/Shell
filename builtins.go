@@ -47,9 +47,9 @@ func handleType(args ...string) {
 	path, err := exec.LookPath(arg)
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			fmt.Println(arg + ": not found")
+			fmt.Fprintln(os.Stderr, arg + ": not found")
 		} else {
-			fmt.Println("error:", err)
+			fmt.Fprintln(os.Stderr, "error:", err)
 		}
 		return;
 	}
@@ -58,12 +58,12 @@ func handleType(args ...string) {
 
 func handlePwd(args ...string) {
 	if len(args) > 0 {
-		fmt.Println("pwd: too many arguments")
+		fmt.Fprintln(os.Stderr, "pwd: too many arguments")
 		return
 	}
 	wd, err := os.Getwd();
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Fprintln(os.Stderr, "error:", err)
 		return
 	}
 	fmt.Println(wd)
@@ -77,7 +77,7 @@ func handleCd(args ...string) {
 	if(path == "~") {
 		home := os.Getenv("HOME")
 		if home == "" {
-			fmt.Println("cd: HOME not set")
+			fmt.Fprintln(os.Stderr, "cd: HOME not set")
 			return
 		}
 		os.Chdir(home)
@@ -85,9 +85,9 @@ func handleCd(args ...string) {
 	}
 	if err := os.Chdir(path); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			fmt.Println("cd: " + path + ": No such file or directory")
+			fmt.Fprintln(os.Stderr, "cd: " + path + ": No such file or directory")
 		} else {
-			fmt.Println("error: ", err)
+			fmt.Fprintln(os.Stderr, "error: ", err)
 		}
 	}
 } 
